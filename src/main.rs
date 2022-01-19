@@ -27,6 +27,10 @@ fn main() {
     //let date_format = value["date-format"].as_str();
     let show_sys_info = value["show-sys-info"].as_bool();
     //let sys_info_format =
+    let info_color = match value["info-color"].as_str() {
+        Some(b) => b,
+        _ => "none",
+    };
 
     // terminal art
     match show_art {
@@ -38,15 +42,27 @@ fn main() {
         _ => println!("Set show-ascii-art = true/false in ~/.config/qterm/qterm.toml"),
     }
 
-    // time
-    match show_time {
-        Some(v) => {
-            if v {
-                time();
+    // displays info horizontally
+    let time_strs = time(show_time);
+    //let date_strs = date(show_date);
+    let cpu_strs = sys_info(show_sys_info).0;
+    let ram_strs = sys_info(show_sys_info).1;
+
+    for i in 0..3 {
+        match info_color {
+            // red, blue, green, yellow, cyan, magenta, black, grey,
+            _ => {
+                println!(
+                    "{} {} {}",
+                    time_strs[i].white(),
+                    cpu_strs[i].blue(),
+                    ram_strs[i].red()
+                );
             }
         }
-        _ => println!("Set show-time = true/false in ~/.config/qterm/qterm.toml"),
     }
+
+    // SET TO CHANGE
 
     // date
     match show_date {
@@ -57,17 +73,7 @@ fn main() {
         }
         _ => println!("Set show-date = true/false in ~/.config/qterm/qterm.toml"),
     }
-
-    // system info
-    match show_sys_info {
-        Some(v) => {
-            if v {
-                sys_info();
-            }
-        }
-        _ => println!("Set show-sys-info = true/false in ~/.config/qterm/qterm.toml"),
-    }
-} // main
+} // main end
 
 fn ascii_art() {
     // display art randomly
@@ -312,7 +318,7 @@ fn ascii_art() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------
 
-fn time() {
+fn time(status: Option<bool>) -> [String; 3] {
     let time = chrono::offset::Local::now().time();
     let hour: String = match time.hour() {
         0 => "00".to_string(),
@@ -341,24 +347,50 @@ fn time() {
         _ => time.minute().to_string(),
     };
 
-    let display_time = format!(
-        "╔══════════╗
-║ 🕐 {}:{} ║
-╚══════════╝",
-        hour, minute
-    )
-    .bold(); // allow display color to be determined by config file
+    let display_time = match status {
+        Some(v) => {
+            if v {
+                // displays time if true
+                [
+                    String::from("╔══════════╗"),
+                    format!("║ 🕐 {}:{} ║", hour, minute),
+                    String::from("╚══════════╝"),
+                ]
+            } else {
+                // displays nothing otherwise
+                [String::from(""), String::from(""), String::from("")]
+            }
+        }
+        // shows error msg
+        _ => [
+            String::from("Set show-time = true/false in ~/.config/qterm/qterm.toml"),
+            String::from(""),
+            String::from(""),
+        ],
+    };
 
-    println!("{}", display_time);
+    /*let display_time = format!(
+            "╔══════════╗
+    ║ 🕐 {}:{} ║
+    ╚══════════╝",
+            hour, minute
+        )
+        .bold(); // allow display color to be determined by config file */
+
+    // displays the time
+    //println!("{}", display_time);
+
+    display_time
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------
 
+// more like day: displays the day of the week in large ascii letters!
 fn date() {}
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------
 
-fn sys_info() {
+fn sys_info(status: Option<bool>) -> ([String; 3], [String; 3]) {
     let mut system = sysinfo::System::new();
 
     // update all info for system struct
@@ -389,17 +421,28 @@ fn sys_info() {
     let total_cpu_usage = (cpu_usage / count * 100.0).round();
     let total_cpu_usage: u16 = total_cpu_usage as u16;
 
-    // display average core usage
-    let display_cpu = format!(
-        "╔══════════╗
-║ cpu: {}% ║
-╚══════════╝",
-        total_cpu_usage
-    )
-    .bold()
-    .blue(); // allow display color to be determined by config file
-
-    println!("{}", display_cpu);
+    // return average core usage as string arr
+    let display_cpu = match status {
+        Some(v) => {
+            if v {
+                // displays time if true
+                [
+                    String::from("╔══════════╗"),
+                    format!("║ CPU: {}% ║", total_cpu_usage),
+                    String::from("╚══════════╝"),
+                ]
+            } else {
+                // displays nothing otherwise
+                [String::from(""), String::from(""), String::from("")]
+            }
+        }
+        // shows error msg
+        _ => [
+            String::from("Set show-sys-info = true/false in ~/.config/qterm/qterm.toml"),
+            String::from(""),
+            String::from(""),
+        ],
+    };
 
     // and then the disk info
     //for disk in system.get_disks() {
@@ -416,14 +459,28 @@ fn sys_info() {
     //println!("total memory: {}kb", &total_ram);
     //println!("used memory: {}kb", &used_ram);
 
-    let display_ram = format!(
-        "╔══════════╗
-║ RAM: {}% ║
-╚══════════╝",
-        percent_ram
-    )
-    .bold()
-    .red(); // allow display color to be determined by config file
+    // return average core usage as string arr
+    let display_ram = match status {
+        Some(v) => {
+            if v {
+                // displays time if true
+                [
+                    String::from("╔══════════╗"),
+                    format!("║ RAM: {}% ║", percent_ram),
+                    String::from("╚══════════╝"),
+                ]
+            } else {
+                // displays nothing otherwise
+                [String::from(""), String::from(""), String::from("")]
+            }
+        }
+        // shows error msg
+        _ => [
+            String::from("Set show-sys-info = true/false in ~/.config/qterm/qterm.toml"),
+            String::from(""),
+            String::from(""),
+        ],
+    };
 
-    println!("{}", display_ram);
+    (display_cpu, display_ram)
 }
