@@ -193,6 +193,8 @@
 
 */
 
+//---------------------CODE----------------------------------------------------------------------------------------------------------------------------
+
 //Terminal App to display some ascii art
 //and display useful info like time/date/system resources
 use chrono::Timelike;
