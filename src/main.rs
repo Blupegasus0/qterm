@@ -197,19 +197,43 @@
 
 //Terminal App to display some ascii art
 //and display useful info like time/date/system resources
-use chrono::Timelike;
 use colored::Colorize;
-use rand::Rng;
+use qterm_modules::{
+    ascii_art::ascii_art::ascii_art,
+    date::date::{date, time},
+    sys_info::sys_info::sys_info,
+};
+use std::fs::File;
+use std::io::ErrorKind;
 use std::path::Path;
-use sysinfo::{ProcessorExt, SystemExt};
 use toml::Value;
 
 fn main() {
     // config file path
-    let path = Path::new("/home/amire/.config/qterm/qterm.toml");
+    let path = Path::new("/home/amire/.config/qterm/qterm.toml"); // needs to be universalized
 
     // read config file to string
-    let config = std::fs::read_to_string(&path).expect("cannot read file");
+    let config = match std::fs::read_to_string(&path) {
+        // if the file is readable then read it
+        Ok(content) => content,
+
+        //if the file is unreadable then look at the type of error
+        Err(err) => {
+            match err.kind() {
+                // if the error is "not found" then create a new config file
+                ErrorKind::NotFound => match File::create(Path::new("")) {
+                    // if the config file can be created then create it
+                    Ok(_) => (),
+                    // else panic! (quit the program)
+                    Err(_) => panic!("Error creating config file"),
+                },
+                // if the error is something else then panic! (quit the program)
+                _ => panic!("Couldn't read config file"),
+            }
+            // the file is not readable so read in "" instead
+            String::from("")
+        }
+    };
 
     // sets value as the content of the config file
     // can now be parsed for key value pairs
@@ -322,7 +346,7 @@ fn main() {
         }
     }
 
-    // SET TO CHANGE
+    // date is going to be displayed separately so no need for the looping/iteration
 
     // date
     match show_date {
@@ -334,395 +358,3 @@ fn main() {
         _ => println!("Set show-date = true/false in ~/.config/qterm/qterm.toml"),
     }
 } // main end
-
-fn ascii_art() {
-    // display art randomly
-    let rand_art = rand::thread_rng().gen_range(1..11);
-    let rand_color = rand::thread_rng().gen_range(1..10);
-
-    // list of ascii art
-    let art1 = "
-     _    _      _ _        __          __        _     _ _ 
-    | |  | |    | | |       \\ \\        / /       | |   | | |
-    | |__| | ___| | | ___    \\ \\  /\\  / /__  _ __| | __| | |
-    |  __  |/ _ \\ | |/ _ \\    \\ \\/  \\/ / _ \\| '__| |/ _` | |
-    | |  | |  __/ | | (_) |    \\  /\\  / (_) | |  | | (_| |_|
-    |_|  |_|\\___|_|_|\\___/      \\/  \\/ \\___/|_|  |_|\\__,_(_)
-        "
-    .bold();
-
-    let art2 = "           _   _  ____  _   ___     ____  __  ____  _    _  _____ 
-     /\\   | \\ | |/ __ \\| \\ | \\ \\   / /  \\/\\ |/ __ \\| |  | |/ ____|
-    /  \\  |  \\| | |  | |  \\| |\\ \\_/ /| \\  / | |  | | |  | | (___  
-   / /\\ \\ | . ` | |  | | . ` | \\   / | |\\/| | |  | | |  | |\\___ \\ 
-  / ____ \\| |\\  | |__| | |\\  |  | |  | |  | | |__| | |__| |____) |
- /_/    \\_\\_| \\_|\\____/|_| \\_|  |_|  |_|  |_|\\____/ \\____/|_____/ 
-                                                                  "
-    .bold();
-    let art3 = "
-
-                              ██████░░░░░░░░░░░░░░░░██████                              
-                            ██░░░░░░                ░░░░░░██                            
-                          ██░░                            ░░██                          
-                        ██░░                                ░░██                        
-                        ██    ██████                ██████    ██                        
-                        ██  ░░░░░░░░████        ████░░░░░░░░  ██                        
-                        ██          ░░████    ████░░          ██                        
-                        ██            ░░░░    ░░░░            ██                        
-                        ██░░  ░░██████░░░░    ░░░░██████░░  ░░██                        
-                        ██░░░░██████████░░    ░░██████████░░░░██                        
-                        ██░░  ░░░░░░░░  ░░    ░░  ░░░░░░░░  ░░██                        
-                        ██              ░░    ░░              ██                        
-                        ██  ░░░░░░      ░░    ░░      ░░░░░░  ██                        
-                        ██  ░░░░░░    ░░        ░░    ░░░░░░  ██                        
-                        ██░░          ░░        ░░          ░░██                        
-                        ██░░░░██        ██░░░░██        ██░░░░██                        
-                        ██░░  ██████░░████████████░░██████  ░░██                        
-                        ██  ░░  ██████████    ██████████  ░░  ██                        
-                          ██  ░░░░    ░░░░░░░░░░░░    ░░░░  ██                          
-                          ██      ░░                ░░      ██                          
-                            ██  ░░  ░░░░░░████░░░░░░  ░░  ██                            
-                            ██░░  ░░      ████      ░░  ░░██                            
-                              ██░░      ░░████░░      ░░██                              
-                                ██░░    ░░████░░    ░░██                                
-                                  ██░░░░  ████  ░░░░██                                  
-                                    ████░░████░░████                                    
-                                        ████████                                        
-                                                                                        
-"
-    .bold();
-
-    // add syntax highlighting lmao
-    let art4 = "
-  _   __      __                         _                    _                       __      __
- (_) / _|    / /                        | |          ______  | |                      \\ \\    / /
-  _ | |_    | |    __ _ __      __ __ _ | | __ ___  |______| | |_  _ __  _   _   ___   | |  | | 
- | ||  _|   | |   / _` |\\ \\ /\\ / // _` || |/ // _ \\  ______  | __|| '__|| | | | / _ \\  | | / /  
- | || |     | |  | (_| | \\ V  V /| (_| ||   <|  __/ |______| | |_ | |   | |_| ||  __/  | | \\ \\  
- |_||_|     | |   \\__,_|  \\_/\\_/  \\__,_||_|\\_\\___|            \\__||_|    \\__,_| \\___|  | |  | | 
-           _ \\_\\                                __ __                                 /_/    \\_\\
-          | |                                  / / \\ \\   _                                               
-          | |__    __ _  _ __   _ __   _   _  | |   | | (_)                                              
-          | '_ \\  / _` || '_ \\ | '_ \\ | | | | | |   | |                                                  
-          | | | || (_| || |_) || |_) || |_| | | |   | |  _                                               
-          |_| |_| \\__,_|| .__/ | .__/  \\__, | | |   | | ( )                                              
- __                     | |    | |      __/ |  \\_\\ /_/  |/                                               
- \\ \\                    |_|    |_|     |___/                                                             
-  | |                                                                                           
-   \\ \\                                                                                          
-   / /                                                                                          
-  | |                                                                                           
- /_/                                                                                            
-                                                                                                "
-.blue().bold();
-
-    let art5 =
-        "                                                                                        
-                                                                                        
-                                                                                        
-                                                                                        
-                                                                                        
-                                                                                        
-                                                                                        
-                                            ████                                        
-                                          ██    ██                                      
-                                        ██  ▓▓▓▓  ██                                    
-                                        ██  ▓▓▓▓  ██                                    
-                                      ██            ██                                  
-                                      ██    ▓▓▓▓    ██                                  
-                                      ██    ▓▓▓▓    ██                                  
-                                      ██            ██                                  
-                                        ██  ▓▓▓▓  ██                                    
-                                        ██  ▓▓▓▓  ██                                    
-                                      ██▒▒██    ██▒▒██                                  
-                                      ██▒▒██    ██▒▒██                                  
-                                      ██▒▒████████▒▒██                                  
-                                      ██▒▒██    ██▒▒██                                  
-                                        ██        ██                                    
-                                                                                        
-                                                                                        
-                                                                                        
-                                                                                        
-                                                                                        
-                                                                                        
-░░                                          ░░  ░░                                      
-"
-        .bold();
-
-    let art6 =
-        "                                                                                        
-                                                                                        
-            ░░                                                                  ░░      
-                                                                                        
-                                                                                        
-      ░░                                ░░  ██                                          
-  ░░                                        ██                              ░░░░        
-                                            ██                                          
-                                          ▓▓▓▓▓▓                                        
-                                        ▓▓▓▓▓▓▓▓▓▓                                      
-                                      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓                                    
-                                      ▓▓▒▒▓▓▓▓▒▒▓▓▓▓                                    
-                                      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓                                    
-                                      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓                                    
-                                      ░░░░▒▒░░░░░░░░                                    
-                                      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓                                    
-                                      ▓▓▒▒▒▒▓▓▒▒▒▒▓▓                                    
-                                      ▓▓▒▒▒▒██▒▒▒▒▓▓                                    
-                                    ████▓▓▓▓▓▓██▓▓▓▓██      ░░                          
-                                  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██                                
-                                ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██                              
-                                ▓▓▓▓▓▓██▓▓██▓▓▓▓▓▓▓▓▓▓▓▓▓▓                              
-        ░░                      ▓▓▓▓▓▓░░████████████░░████                        ░░    
-                                ▓▓    ▓▓░░░░░░▓▓░░░░    ▓▓                              
-                                                                                        
-                                                                                        
-                                                                                        
-                                                                                        
-                        ▒▒                ▒▒    ▒▒          ▒▒    ▒▒                    
-"
-        .bold();
-
-    let art7 = "                _                       
-                \\`*-.                   
-                 )  _`-.                
-                .  : `. .               
-                : _   '  \\              
-                ; *` _.   `*-._         
-                `-.-'          `-.      
-                  ;       `       `.    
-                  :.       .        \\   
-                  . \\  .   :   .-'   .  
-                  '  `+.;  ;  '      :  
-                  :  '  |    ;       ;-.
-                  ; '   : :`-:     _.`* ;
-         [bug] .*' /  .*' ; .*`- +'  `*'
-               `*-*   `*-*  `*-*'       
-"
-    .bold();
-
-    let art8 = "     _      _      _      _      _      _      _
-   _( )__ _( )__ _( )__ _( )__ _( )__ _( )__ _( )__
- _|     _|     _|     _|     _|     _|     _|     _|
-(_   _ (_   _ (_   _ (_   _ (_   _ (_   _ (_   _ (_
- |__( )_|__( )_|__( )_|__( )_|__( )_|__( )_|__( )_|
- |_     |_     |_     |_     |_     |_     |_     |_
-  _) _   _) _   _) _   _) _   _) _   _) _   _) _   _)
- |__( )_|__( )_|__( )_|__( )_|__( )_|__( )_|__( )_|
- _|     _|     _|     _|     _|     _|     _|     _|
-(_   _ (_   _ (_   _ (_   _ (_   _ (_   _ (_   _ (_
- |__( )_|__( )_|__( )_|__( )_|__( )_|__( )_|__( )_|
- |_     |_     |_     |_     |_     |_     |_     |_
-  _) _   _) _   _) _   _) _   _) _   _) _   _) _mx _)
- |__( )_|__( )_|__( )_|__( )_|__( )_|__( )_|__( )_|
-"
-    .bold();
-
-    let art9 = "Art by Horroroso
-.    ,'    ,--'   ,'    `;-.     / \\      `. o  ,--.      `.   /
- `.-'    ,'      '`-.,  /       /   `.      `--'  o `.      \\ /     `-
-   `.   /       /  '-..,       ;    ,-`.          ,---`.,.---'
-     \\ /     `-;.    ,'    ,--'   ,'    `;-.     / \\      `. o  ,--.
-'`.---'          `.-'    ,'      '`-.,  /       /   `.      `--'  o `.
-   `. o  ,--.      `.   /       /  '-..,       ;    ,-`.          ,---
-     `--'  o `.      \\ /     `-;.    ,'    ,--'   ,'    `;-.     / \\
-.          ,---`'`.---'          `.-'    ,'      '`-.,  /       /   `.
- `;-.     / \\      `. o  ,--.      `.   /       /  '-..,       ;    ,-
- /       /   `.      `--'  o `.      \\ /     `-;.    ,'    ,--'   ,'
-,       ;    ,-`.          ,---`.,.---'          `.-'    ,'      '`-.,
-    ,--'   ,'    `;-.     / \\      `. o  ,--.      `.   /       /  '-.
-  ,'      '`-.,  /       /   `.      `--'  o `.      \\ /     `-;.    ,
- /       /  '-..,       ;    ,-`.          ,---`'`.---'          `.-'
-/     `-;.    ,'    ,--'   ,'    `;-.     / \\      `. o  ,--.      `.
-          `.-'    ,'      '`-.,  /       /   `.      `--'  o `.      \\
-  ,--.      `.   /       /  '-..,       ;    ,-`.          ,---`'`.---
--'  o `.      \\ /     `-;.    ,'    ,--'   ,'    `;-.     / \\      `.
-    ,---`'`.---'          `.-'    ,'      '`-.,  /       /   `.      `
-   / \\      `. o  ,--.      `.   /       /  '-..,       ;    ,-`.
-  /   `.      `--'  o `.      \\ /     `-;.    ,'    ,--'   ,'    `;-.
- ;    ,-`.          ,---`'`.---'          `.-'    ,'      '`-.,  /
-'   ,'    `;-.     / \\      `. o  ,--.      `.   / -hrr- /  '-..,
-   '`-.,  /       /   `.      `--'  o `.      \\ /     `-;.    ,'    ,-"
-        .bold();
-
-    let art10 = "that".bold();
-
-    // art to be displayed
-    let display_art = match rand_art {
-        1 => art1,
-        2 => art2,
-        3 => art3,
-        4 => art4,
-        5 => art5,
-        6 => art6,
-        7 => art7,
-        8 => art8,
-        9 => art9,
-        10 => art10,
-        _ => art1,
-    };
-
-    // the final value is printed
-    match rand_color {
-        1 => println!("{}\n", display_art.red()),
-        2 => println!("{}\n", display_art.blue()),
-        3 => println!("{}\n", display_art.green()),
-        4 => println!("{}\n", display_art.yellow()),
-        5 => println!("{}\n", display_art.purple()),
-        6 => println!("{}\n", display_art.white()),
-        7 => println!("{}\n", display_art.bright_black()),
-        8 => println!("{}\n", display_art.bright_red()),
-        9 => println!("{}\n", display_art.bright_cyan()),
-        _ => println!("{}\n", display_art.blue()),
-    }
-}
-
-//---------------------Time----------------------------------------------------------------------------------------------------------------------------
-
-fn time(status: Option<bool>) -> [String; 3] {
-    let time = chrono::offset::Local::now().time();
-    let hour: String = match time.hour() {
-        0 => "00".to_string(),
-        1 => "01".to_string(),
-        2 => "02".to_string(),
-        3 => "03".to_string(),
-        4 => "04".to_string(),
-        5 => "05".to_string(),
-        6 => "06".to_string(),
-        7 => "07".to_string(),
-        8 => "08".to_string(),
-        9 => "09".to_string(),
-        _ => time.hour().to_string(),
-    };
-    let minute: String = match time.minute() {
-        0 => "00".to_string(),
-        1 => "01".to_string(),
-        2 => "02".to_string(),
-        3 => "03".to_string(),
-        4 => "04".to_string(),
-        5 => "05".to_string(),
-        6 => "06".to_string(),
-        7 => "07".to_string(),
-        8 => "08".to_string(),
-        9 => "09".to_string(),
-        _ => time.minute().to_string(),
-    };
-
-    let display_time = match status {
-        Some(v) => {
-            if v {
-                // displays time if true
-                [
-                    String::from("╔══════════╗"),
-                    format!("║ 🕐 {}:{} ║", hour, minute),
-                    String::from("╚══════════╝"),
-                ]
-            } else {
-                // displays nothing otherwise
-                [String::from(""), String::from(""), String::from("")]
-            }
-        }
-        // shows error msg
-        _ => [
-            String::from("Set show-time = true/false in ~/.config/qterm/qterm.toml"),
-            String::from(""),
-            String::from(""),
-        ],
-    };
-
-    /*let display_time = format!(
-            "╔══════════╗
-    ║ 🕐 {}:{} ║
-    ╚══════════╝",
-            hour, minute
-        )
-        .bold(); // allow display color to be determined by config file */
-
-    // displays the time
-    //println!("{}", display_time);
-
-    display_time
-}
-
-//------------------------Date-------------------------------------------------------------------------------------------------------------------------
-
-// more like day: displays the day of the week in large ascii letters!
-fn date() {}
-
-//------------------------System-Info----------------------------------------------------------------------------------------------------------------------
-
-fn sys_info(status: Option<bool>) -> ([String; 3], [String; 3]) {
-    let mut system = sysinfo::System::new();
-
-    // update all info for system struct
-    system.refresh_all();
-
-    // display cpu usage
-    //// still not working quite right, percentages seem inaccurate
-    let mut cpu_usage: f32 = 0.0;
-    let mut count = 0.0;
-    for processor in system.get_processor_list() {
-        // displays individual cpu usage
-        //println!("{}: {}", processor.get_name(), processor.get_cpu_usage());
-
-        count = count + 1.0;
-        cpu_usage = cpu_usage + processor.get_cpu_usage();
-    }
-
-    // calculates average core usage
-    let total_cpu_usage = (cpu_usage / count * 100.0).round();
-    let total_cpu_usage: u16 = total_cpu_usage as u16;
-
-    // return average core usage as string arr
-    let display_cpu = match status {
-        Some(v) => {
-            if v {
-                // displays if true
-                [
-                    String::from("╔══════════╗"),
-                    format!("║ CPU: {}% ║", total_cpu_usage),
-                    String::from("╚══════════╝"),
-                ]
-            } else {
-                // displays nothing otherwise
-                [String::from(""), String::from(""), String::from("")]
-            }
-        }
-        // shows error msg
-        _ => [
-            String::from("Set show-sys-info = true/false in ~/.config/qterm/qterm.toml"),
-            String::from(""),
-            String::from(""),
-        ],
-    };
-
-    // finally, RAM and swap
-    let total_ram: f64 = system.get_total_memory() as f64;
-    let used_ram: f64 = system.get_used_memory() as f64;
-    let percent_ram: f64 = (&used_ram / &total_ram * 100.0).round();
-    let percent_ram: u8 = percent_ram as u8;
-
-    // returns ram as a string arr
-    let display_ram = match status {
-        Some(v) => {
-            if v {
-                // displays if true
-                [
-                    String::from("╔══════════╗"),
-                    format!("║ RAM: {}% ║", percent_ram),
-                    String::from("╚══════════╝"),
-                ]
-            } else {
-                // displays nothing otherwise
-                [String::from(""), String::from(""), String::from("")]
-            }
-        }
-        // shows error msg
-        _ => [
-            String::from("Set show-sys-info = true/false in ~/.config/qterm/qterm.toml"),
-            String::from(""),
-            String::from(""),
-        ],
-    };
-
-    (display_cpu, display_ram)
-}
